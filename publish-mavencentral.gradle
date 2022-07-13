@@ -59,8 +59,8 @@ publishing {
                 // Version control info, if you're using GitHub, follow the format as seen here
                 scm {
                 	//修改成你的Git地址：
-                    connection = 'scm:git:github.com/hardycheng-github/AndroidToolsHub.git'
-                    developerConnection = 'scm:git:ssh://github.com/hardycheng-github/AndroidToolsHub.git'
+                    connection = 'scm:git:https://github.com/hardycheng-github/AndroidToolsHub'
+                    developerConnection = 'scm:git:ssh://github.com/hardycheng-github/AndroidToolsHub'
                     //分支地址：
                     url = 'https://github.com/hardycheng-github/AndroidToolsHub/tree/master'
                 }
@@ -86,8 +86,8 @@ publishing {
             // any other name that's descriptive for you
             name = "mavencentral-hardycheng"
 
-            def releasesRepoUrl = "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
-            def snapshotsRepoUrl = "https://oss.sonatype.org/content/repositories/snapshots/"
+            def releasesRepoUrl = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
+            def snapshotsRepoUrl = "https://s01.oss.sonatype.org/content/repositories/snapshots/"
             // You only need this if you want to publish snapshots, otherwise just set the URL
             // to the release repo directly
             url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
