@@ -55,4 +55,8 @@ class FpsUtil(private val debug: Boolean = false): StopWatch(maxMarkCount = FRAM
         }
     }
 
+    init {
+        onReportParamUpdate()
+    }
+
 }
