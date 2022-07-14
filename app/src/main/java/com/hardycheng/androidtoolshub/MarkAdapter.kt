@@ -4,6 +4,7 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.hardycheng.androidtoolshub.databinding.ItemMarkBinding
+import com.hardycheng.androidtoolshub.tool.StopWatch
 
 class MarkAdapter: RecyclerView.Adapter<MarkAdapter.ViewHolder>() {
 
@@ -16,7 +17,7 @@ class MarkAdapter: RecyclerView.Adapter<MarkAdapter.ViewHolder>() {
 
     fun addMark(mark: StopWatch.Mark){
         list.add(mark)
-        list.sortBy { it.id }
+        list.sortByDescending { it.id }
         notifyDataSetChanged()
     }
 

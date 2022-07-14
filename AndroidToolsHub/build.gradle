@@ -38,6 +38,6 @@ dependencies {
 ext {
     PUBLISH_GROUP_ID = "io.github.hardycheng-github"    //项目包名
     PUBLISH_ARTIFACT_ID = 'android-tools-hub'           //项目名
-    PUBLISH_VERSION = "0.0.1"                           //版本号
+    PUBLISH_VERSION = "0.0.2"                           //版本号
 }
 apply from: "${rootProject.projectDir}/publish-mavencentral.gradle"
