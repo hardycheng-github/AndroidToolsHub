@@ -44,6 +44,7 @@ class FpsDemoActivity : AppCompatActivity() {
     lateinit var binding: ActivityFpsDemoBinding
     private var cameraInit = false
     private val fpsUtil = FpsUtil(debug = true)
+    private var lastFps = 0
 
     override fun onRequestPermissionsResult(requestCode: Int,
                                             permissions: Array<String>, grantResults: IntArray) {
@@ -83,6 +84,10 @@ class FpsDemoActivity : AppCompatActivity() {
     @SuppressLint("UnsafeOptInUsageError")
     private fun startCamera() {
         cameraInit = false
+
+        fpsUtil.reportListener = FpsUtil.ReportListener {
+            lastFps = it
+        }
 
         val cameraExecutor = ContextCompat.getMainExecutor(this)
 
@@ -204,7 +209,7 @@ class FpsDemoActivity : AppCompatActivity() {
                 paint.textSize = 32F
                 paint.textAlign = Paint.Align.LEFT
 
-                canvas.drawText("FPS ${fpsUtil.fps}"
+                canvas.drawText("FPS $lastFps"
                     , 10f, 10f-paint.fontMetricsInt.ascent, paint)
                 binding.canvas.unlockCanvasAndPost(canvas)
 

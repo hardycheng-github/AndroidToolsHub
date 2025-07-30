@@ -41,7 +41,7 @@ open class StopWatch(private val label: String = "default",
 
     open fun mark(): Mark {
         if(state != STATE_START) start()
-        val currentTimestamp = System.currentTimeMillis()
+        val currentTimestamp = (System.nanoTime() / 1000)
         val currentInterval = (currentTimestamp - lastTimestamp).toInt()
         totalTime += currentInterval
         val mark = Mark(queue.size, currentInterval, totalTime, currentTimestamp)
@@ -58,18 +58,18 @@ open class StopWatch(private val label: String = "default",
         if(lastState == STATE_START) return
         if(debug) Log.d(TAG, "#$label start")
         if(lastState == STATE_PAUSE) {
-            lastTimestamp += (System.currentTimeMillis() - pauseTimestamp)
+            lastTimestamp += ((System.nanoTime() / 1000) - pauseTimestamp)
             pauseTimestamp = 0
         } else {
             queue.clear()
-            lastTimestamp = System.currentTimeMillis()
+            lastTimestamp = (System.nanoTime() / 1000)
         }
     }
 
     fun pause(){
         if(toState(STATE_PAUSE) == STATE_PAUSE) return
         if(debug) Log.d(TAG, "#$label pause")
-        pauseTimestamp = System.currentTimeMillis()
+        pauseTimestamp = (System.nanoTime() / 1000)
     }
 
     fun reset(): List<Mark>{
@@ -84,7 +84,7 @@ open class StopWatch(private val label: String = "default",
 
     fun total(): Int{
         return when(state){
-            STATE_START -> totalTime+(System.currentTimeMillis()-lastTimestamp).toInt()
+            STATE_START -> totalTime+((System.nanoTime() / 1000)-lastTimestamp).toInt()
             STATE_PAUSE -> totalTime+(pauseTimestamp-lastTimestamp).toInt()
             else -> 0
         }

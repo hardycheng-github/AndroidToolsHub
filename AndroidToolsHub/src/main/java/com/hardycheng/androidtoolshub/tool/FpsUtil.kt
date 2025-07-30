@@ -33,7 +33,7 @@ class FpsUtil(private val debug: Boolean = false): StopWatch(maxMarkCount = FRAM
         val totalInterval: Int = queue.fold(0){ acc, mark ->
             acc + mark.interval
         }
-        fps = (markCount / (totalInterval / 1000.0)).toInt()
+        fps = (markCount / (totalInterval / 1000000.0)).toInt()
         if(reportInterval <= 0){
             onReport(fps)
         }
