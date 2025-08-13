@@ -4,6 +4,8 @@ import android.util.Log
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import java.util.*
+import java.util.concurrent.locks.ReentrantLock
+import java.util.concurrent.locks.ReentrantReadWriteLock
 
 open class StopWatch(private val label: String = "default",
                      private val maxMarkCount: Int = -1,
@@ -38,6 +40,14 @@ open class StopWatch(private val label: String = "default",
     private var lastTimestamp = 0L
     private var pauseTimestamp = 0L
     var state: Int = STATE_STOP
+    
+    // 維護 totalInterval 避免重複計算
+    protected var totalInterval: Int = 0
+    
+    // 使用 ReentrantReadWriteLock 來保護 queue 操作
+    private val queueLock = ReentrantReadWriteLock()
+    private val readLock = queueLock.readLock()
+    private val writeLock = queueLock.writeLock()
 
     open fun mark(): Mark {
         if(state != STATE_START) start()
@@ -45,9 +55,25 @@ open class StopWatch(private val label: String = "default",
         val currentInterval = (currentTimestamp - lastTimestamp).toInt()
         totalTime += currentInterval
         val mark = Mark(queue.size, currentInterval, totalTime, currentTimestamp)
-        if(maxMarkCount > 0 && queue.size >= maxMarkCount) queue.poll()
-        queue.offer(mark)
-        markCount = queue.size
+        
+        // 使用寫鎖保護 queue 的修改操作
+        writeLock.lock()
+        try {
+            if(maxMarkCount > 0 && queue.size >= maxMarkCount) {
+                val removedMark = queue.poll()
+                // 移除舊的 interval
+                if (removedMark != null) {
+                    totalInterval -= removedMark.interval
+                }
+            }
+            queue.offer(mark)
+            // 加入新的 interval
+            totalInterval += mark.interval
+            markCount = queue.size
+        } finally {
+            writeLock.unlock()
+        }
+        
         if(debug) Log.d(TAG, "#$label mark $mark")
         lastTimestamp = currentTimestamp
         return mark
@@ -61,7 +87,14 @@ open class StopWatch(private val label: String = "default",
             lastTimestamp += ((System.nanoTime() / 1000) - pauseTimestamp)
             pauseTimestamp = 0
         } else {
-            queue.clear()
+            // 使用寫鎖保護 queue 的清空操作
+            writeLock.lock()
+            try {
+                queue.clear()
+                totalInterval = 0  // 重置 totalInterval
+            } finally {
+                writeLock.unlock()
+            }
             lastTimestamp = (System.nanoTime() / 1000)
         }
     }
@@ -73,13 +106,22 @@ open class StopWatch(private val label: String = "default",
     }
 
     fun reset(): List<Mark>{
-        if(toState(STATE_STOP) == STATE_STOP) return queue.toList()
+        if(toState(STATE_STOP) == STATE_STOP) {
+            // 使用讀鎖保護 queue 的讀取操作
+            readLock.lock()
+            try {
+                return queue.toList()
+            } finally {
+                readLock.unlock()
+            }
+        }
         if(debug) Log.d(TAG, "#$label reset")
         markCount = 0
         totalTime = 0
+        totalInterval = 0  // 重置 totalInterval
         lastTimestamp = 0L
         pauseTimestamp = 0L
-        return queue.toList()
+        return emptyList()
     }
 
     fun total(): Int{
@@ -87,6 +129,26 @@ open class StopWatch(private val label: String = "default",
             STATE_START -> totalTime+((System.nanoTime() / 1000)-lastTimestamp).toInt()
             STATE_PAUSE -> totalTime+(pauseTimestamp-lastTimestamp).toInt()
             else -> 0
+        }
+    }
+
+    // 新增安全的 queue 讀取方法
+    fun getQueueSnapshot(): List<Mark> {
+        readLock.lock()
+        try {
+            return queue.toList()
+        } finally {
+            readLock.unlock()
+        }
+    }
+
+    // 新增安全的 totalInterval 讀取方法
+    fun getTotalIntervalWithLock(): Int {
+        readLock.lock()
+        try {
+            return totalInterval
+        } finally {
+            readLock.unlock()
         }
     }
 

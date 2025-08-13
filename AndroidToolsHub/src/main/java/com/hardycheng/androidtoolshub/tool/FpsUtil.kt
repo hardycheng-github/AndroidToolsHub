@@ -30,9 +30,8 @@ class FpsUtil(private val debug: Boolean = false): StopWatch(maxMarkCount = FRAM
 
     fun tick(){
         mark()
-        val totalInterval: Int = queue.fold(0){ acc, mark ->
-            acc + mark.interval
-        }
+        // 直接使用已計算好的 totalInterval，避免重複計算
+        val totalInterval = getTotalIntervalWithLock()
         fps = (markCount / (totalInterval / 1000000.0)).toInt()
         if(reportInterval <= 0){
             onReport(fps)
@@ -51,6 +50,9 @@ class FpsUtil(private val debug: Boolean = false): StopWatch(maxMarkCount = FRAM
         if(reportInterval > 0){
             timerTask = Timer().schedule(delay = 0, period = reportInterval) {
                 onReport(fps)
+                reset()
+                start()
+                fps = 0
             }
         }
     }
